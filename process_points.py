@@ -22,7 +22,7 @@ def process_video(VideoName):
 
         try:
             t0 = time.time()
-            joint2D = generate_2d_keypoints(bboxModel, poseModel, frame,True)  
+            joint2D = generate_2d_keypoints(bboxModel, poseModel, frame)  
             print('HrNet comsume {:0.3f} s'.format(time.time() - t0))
         except Exception as e:
             print(e)

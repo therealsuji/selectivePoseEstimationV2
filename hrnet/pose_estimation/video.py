@@ -166,7 +166,7 @@ def getTwoModel():
     return bbox_model, pose_model
 
 
-def generate_2d_keypoints(human_model, pose_model, image, smooth=None):
+def generate_2d_keypoints(human_model, pose_model, image):
 
     bboxs, scores = yolo_det(image, human_model)
     # bbox is coordinate location
@@ -179,10 +179,9 @@ def generate_2d_keypoints(human_model, pose_model, image, smooth=None):
         # compute coordinate
         preds, maxvals = get_final_preds(
             cfg, output.clone().cpu().numpy(), np.asarray(center), np.asarray(scale))
-        if smooth:
-            # smooth and fine-tune coordinates
-            preds = smooth_filter(preds)
-    # 3D video pose (only support single human)
+
+        # smooth and fine-tune coordinates
+        preds = smooth_filter(preds)
     result = np.concatenate((preds[0], maxvals[0]), 1)
     return result
 
