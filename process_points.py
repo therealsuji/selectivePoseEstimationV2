@@ -3,15 +3,13 @@ import cv2
 from tqdm import tqdm
 import numpy as np
 import time
-from hrnet.pose_estimation.video import getTwoModel, getKptsFromImage
-bboxModel, poseModel = getTwoModel()
-interface2D = getKptsFromImage
+from hrnet.pose_estimation.video import getTwoModel, generate_2d_keypoints
 from tools.utils import videopose_model_load as Model3Dload
-model3D = Model3Dload()
-from tools.utils import interface as VideoPoseInterface
-interface3D = VideoPoseInterface
-from tools.utils import draw_3Dimg, draw_2Dimg, 
+from tools.utils import draw_3Dimg, draw_2Dimg,generate_3d_keypoints
 from tools.video_utils import videoInfo, resize_img
+bboxModel, poseModel = getTwoModel()
+model3D = Model3Dload()
+
 
 def process_video(VideoName):
     cap, cap_length = videoInfo(VideoName)
@@ -24,7 +22,7 @@ def process_video(VideoName):
 
         try:
             t0 = time.time()
-            joint2D = interface2D(bboxModel, poseModel, frame,True)  
+            joint2D = generate_2d_keypoints(bboxModel, poseModel, frame,True)  
             print('HrNet comsume {:0.3f} s'.format(time.time() - t0))
         except Exception as e:
             print(e)

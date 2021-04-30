@@ -166,7 +166,7 @@ def getTwoModel():
     return bbox_model, pose_model
 
 
-def getKptsFromImage(human_model, pose_model, image, smooth=None):
+def generate_2d_keypoints(human_model, pose_model, image, smooth=None):
 
     bboxs, scores = yolo_det(image, human_model)
     # bbox is coordinate location

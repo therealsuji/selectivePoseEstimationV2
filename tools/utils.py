@@ -123,7 +123,7 @@ def videopose_model_load():
     receptive_field = model_pos.receptive_field()
     return model_pos
 
-def interface(model_pos, keypoints, W, H):
+def generate_3d_keypoints(model_pos, keypoints, W, H):
     # input (N, 17, 2) return (N, 17, 3)
     if not isinstance(keypoints, np.ndarray):
         keypoints = np.array(keypoints)
