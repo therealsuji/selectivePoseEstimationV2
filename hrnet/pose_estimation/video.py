@@ -105,53 +105,6 @@ def ckpt_time(t0=None, display=None):
 args = get_args()
 update_config(cfg, args)
 
-def generate_kpts(video_name, smooth=None):
-    human_model = yolo_model()
-    args = get_args()
-    update_config(cfg, args)
-    cam = cv2.VideoCapture(video_name)
-    video_length = int(cam.get(cv2.CAP_PROP_FRAME_COUNT))
-
-    ret_val, input_image = cam.read()
-    # Video writer
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    input_fps = cam.get(cv2.CAP_PROP_FPS)
-
-    #### load pose-hrnet MODEL
-    pose_model = model_load(cfg)
-    pose_model.cuda()
-
-    # collect keypoints coordinate
-    kpts_result = []
-    for i in tqdm(range(video_length-1)):
-
-        ret_val, input_image = cam.read()
-
-        try:
-            bboxs, scores = yolo_det(input_image, human_model)
-            # bbox is coordinate location
-            inputs, origin_img, center, scale = PreProcess(input_image, bboxs, scores, cfg)
-        except Exception as e:
-            print(e)
-            continue
-
-        with torch.no_grad():
-            # compute output heatmap
-            inputs = inputs[:,[2,1,0]]
-            output = pose_model(inputs.cuda())
-            # compute coordinate
-            preds, maxvals = get_final_preds(
-                cfg, output.clone().cpu().numpy(), np.asarray(center), np.asarray(scale))
-
-        if smooth:
-            # smooth and fine-tune coordinates
-            preds = smooth_filter(preds)
-
-        # 3D video pose (only support single human)
-        kpts_result.append(preds[0])
-
-    result = np.array(kpts_result)
-    return result
 
 def getTwoModel():
     #  args = get_args()
@@ -185,5 +138,3 @@ def generate_2d_keypoints(human_model, pose_model, image):
     result = np.concatenate((preds[0], maxvals[0]), 1)
     return result
 
-if __name__ == '__main__':
-    main()
