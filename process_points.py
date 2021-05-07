@@ -37,10 +37,10 @@ def process_video(VideoName):
         else:
             kpt2Ds.append(joint2D)
 
-        joint3D = interface3D(model3D, np.array(kpt2Ds), W, H)
+        joint3D = generate_3d_keypoints(model3D, np.array(kpt2Ds))
         joint3D_item = joint3D[-1] #(17, 3)
         kpt3d.append(joint3D_item)
-        draw_3Dimg(joint3D_item, frame, display=1, kpt2D=joint2D)
+        # draw_3Dimg(joint3D_item, frame, display=1, kpt2D=joint2D)
     np.save('outputfile', kpt3d)
     
 

@@ -119,7 +119,7 @@ def getTwoModel():
     return bbox_model, pose_model
 
 
-def generate_2d_keypoints(human_model, pose_model, image):
+def generate_2d_keypoints(human_model, pose_2d_model, image):
 
     bboxs, scores = yolo_det(image, human_model)
     # bbox is coordinate location
@@ -128,7 +128,7 @@ def generate_2d_keypoints(human_model, pose_model, image):
     with torch.no_grad():
         # compute output heatmap
         inputs = inputs[:,[2,1,0]]
-        output = pose_model(inputs.cuda())
+        output = pose_2d_model(inputs.cuda())
         # compute coordinate
         preds, maxvals = get_final_preds(
             cfg, output.clone().cpu().numpy(), np.asarray(center), np.asarray(scale))

@@ -3,6 +3,9 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+from common.camera import normalize_screen_coordinates_new, camera_to_world, normalize_screen_coordinates
+from common.generators import UnchunkedGenerator
+
 path = os.path.split(os.path.realpath(__file__))[0]
 main_path = os.path.join(path, '..')
 
@@ -123,19 +126,13 @@ def videopose_model_load():
     receptive_field = model_pos.receptive_field()
     return model_pos
 
-def generate_3d_keypoints(model_pos, keypoints, W, H):
-    # input (N, 17, 2) return (N, 17, 3)
+def generate_3d_keypoints(model_3d_pos, keypoints):
     if not isinstance(keypoints, np.ndarray):
         keypoints = np.array(keypoints)
-
-    from common.camera import normalize_screen_coordinates_new, camera_to_world, normalize_screen_coordinates
-    #  keypoints = normalize_screen_coordinates_new(keypoints[..., :2], w=W, h=H)
     keypoints = normalize_screen_coordinates(keypoints[..., :2], w=1000, h=1002)
     input_keypoints = keypoints.copy()
-    # test_time_augmentation True
-    from common.generators import UnchunkedGenerator
     gen = UnchunkedGenerator(None, None, [input_keypoints], pad=common.pad, causal_shift=common.causal_shift, augment=True, kps_left=common.kps_left, kps_right=common.kps_right, joints_left=common.joints_left, joints_right=common.joints_right)
-    prediction = evaluate(gen, model_pos, return_predictions=True)
+    prediction = evaluate(gen, model_3d_pos, return_predictions=True)
     prediction = camera_to_world(prediction, R=common.rot, t=0)
     prediction[:, :, 2] -= np.min(prediction[:, :, 2])
     return prediction

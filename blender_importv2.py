@@ -8,7 +8,7 @@ import os.path
 import sys
 import addon_utils
 
-os.system('cls')
+# os.system('cls')
 argv = sys.argv
 argv = argv[argv.index("--") + 1:]
 path = argv[0]

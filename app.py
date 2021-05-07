@@ -7,7 +7,8 @@ import cv2
 import numpy as np
 from run_blender import generate_blend_file
 from process_points import process_video
-
+import threading
+import time
 class Application(object):
 
     def __init__(self):
@@ -34,8 +35,12 @@ class Application(object):
         self.placeholder.setFont(font)
         self.placeholder.setAlignment(QtCore.Qt.AlignCenter)
         self.placeholder.setObjectName("placeholder")
+        self.progressBar = QtWidgets.QProgressBar(self.frame)
+        self.progressBar.setProperty("value", 0)
+        self.progressBar.setObjectName("progressBar")
         self.verticalLayout_3.addWidget(self.placeholder)
         self.horizontalLayout.addWidget(self.frame)
+        self.verticalLayout_3.addWidget(self.progressBar)
         self.frame1 = QtWidgets.QFrame(self.centralwidget)
         self.frame1.setMaximumSize(QtCore.QSize(200, 16777215))
         self.frame1.setObjectName("frame1")
@@ -61,10 +66,14 @@ class Application(object):
         self.generate_btn.setStyleSheet("")
         self.generate_btn.setObjectName("generate_btn")
         self.verticalLayout_2.addWidget(self.generate_btn)
+        self.label_2 = QtWidgets.QLabel(self.frame1)
+        self.label_2.setObjectName("label_2")
+        self.verticalLayout_2.addWidget(self.label_2)
         self.load_btn.raise_()
         self.generate_btn.raise_()
         self.label.raise_()
         self.selection_input.raise_()
+        self.label_2.raise_()
         self.horizontalLayout.addWidget(self.frame1, 0, QtCore.Qt.AlignTop)
         MainWindow.setCentralWidget(self.centralwidget)
 
@@ -83,17 +92,33 @@ class Application(object):
 
         self.load_btn.clicked.connect(self.openFileBrowser)
         self.generate_btn.clicked.connect(self.generate_pose)
+        self.label_2.setText(_translate("MainWindow", ""))
+
+    def processVideo(self):
+        self.progressBar.setProperty("value", 0)
+        # self.result = self.tracker.track_complete_file()
+        # gen_masked_video(self.image_folder, self.result,
+        #                     self.selection_input.text())
+        output_file_name = images_to_video(self.image_folder, 'masked_output.mp4')
+        self.progressBar.setProperty("value", 20)
+        process_video(output_file_name)
+        self.progressBar.setProperty("value", 80)
+        generate_blend_file()
+        self.progressBar.setProperty("value", 100)
+        time.sleep(200)
+        # self.thread.join()
+        #  self.OpenMessageBox(QtWidgets.QMessageBox.Information,"Success","A blender file has been generated in your desktop")
 
     def generate_pose(self):
         if(self.tracking_complete):
             self.image_folder = video_to_images(self.filepath)
-            self.result = self.tracker.track_complete_file()
-            gen_masked_video(self.image_folder, self.result,
-                             self.selection_input.text())
-            output_file_name = images_to_video(self.image_folder, 'masked_output.mp4')
-            process_video(output_file_name)
-            generate_blend_file()
-            self.OpenMessageBox(QtWidgets.QMessageBox.Information,"Success","A blender file has been generated in your desktop")
+            self.thread = threading.Thread(target = self.processVideo)
+            self.thread.daemon = True
+            _translate = QtCore.QCoreApplication.translate
+            self.label_2.setText(_translate("MainWindow", "Processing Video"))
+            self.thread.start()
+            
+
         else:
             self.OpenMessageBox(QtWidgets.QMessageBox.Warning,"Error","Please load a video first")
             # msg = QtWidgets.QMessageBox()

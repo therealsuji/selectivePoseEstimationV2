@@ -6,13 +6,11 @@ from multi_person_tracker import MPT
 from tools.video_utils import (
     video_to_images, gen_masked_video, images_to_video)
 import cv2
-# from tools.infer_video_d2 import generate2dKeypoints
-# from tools.prepare_data_2d_custom import process2D_keypoints
-# from tools.inference_3d import generate_3d_inference
+import time
 from run_blender import generate_blend_file
 from process_points import process_video
 yolo_img_size = 416
-detector = "yolo"
+detector = "maskrcnn"
 tracker_batch_size = 3
 display_box = False
 
@@ -28,7 +26,7 @@ def main(args):
         args.output_folder, os.path.basename(video_file).replace('.mp4', ''))
     os.makedirs(output_path, exist_ok=True)
     image_folder = video_to_images(video_file)
-
+    begin = time.time()
     mpt = MPT(
         device=device,
         batch_size=tracker_batch_size,
@@ -38,10 +36,18 @@ def main(args):
         yolo_img_size=yolo_img_size,
     )
     result = mpt(image_folder)
+    end = time.time()
+    print(f"Total runtime for tracking is {end - begin}")
     gen_masked_video(image_folder, result, 1)
     output_file_name = images_to_video(image_folder, 'masked_output.mp4')
-    process_video(output_file_name)
+    begin = time.time()
+    process_video("masked_output.mp4")
+    end = time.time()
+    print(f"Total runtime for inference is {end - begin}")
+    begin = time.time()
     generate_blend_file()
+    end = time.time()
+    print(f"Total runtime for generation is {end - begin}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
